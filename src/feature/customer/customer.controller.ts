@@ -11,4 +11,9 @@ export class CustomerController {
   async createProfile(data: CreateCustomerProfileRequest) {
     return await this.customerService.createProfile(data);
   }
+  get_customer_profile;
+  @MessagePattern({ cmd: 'get_customer_profile' })
+  async getCustomerProfile(id: number) {
+    return await this.customerService.getCustomerProfile(id);
+  }
 }

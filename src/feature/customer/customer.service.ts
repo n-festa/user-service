@@ -45,10 +45,10 @@ export class CustomerService {
       });
       //Check the profile does exist before
       if (customer.health_info) {
+        delete customer.refresh_token;
         response.statusCode = 400;
         response.message = 'Profile already exist';
         response.data = customer;
-        console.log(response);
         return response;
       }
 
@@ -75,7 +75,7 @@ export class CustomerService {
       customer.is_active = 1;
       customer.health_info = createdHealInfo;
       const upatedCustomer = await this.customerRepo.save(customer);
-
+      delete upatedCustomer.refresh_token;
       response.statusCode = 200;
       response.message = 'Customer profile has been created';
       response.data = upatedCustomer;
@@ -83,6 +83,30 @@ export class CustomerService {
     } catch (error) {
       response.statusCode = 500;
       response.message = error.toString();
+      return response;
+    }
+  }
+  async getCustomerProfile(id: number): Promise<GeneralResponse> {
+    let response: GeneralResponse = new GeneralResponse(200, '');
+    try {
+      const customer = await this.customerRepo.findOne({
+        relations: {
+          profile_image: true,
+          health_info: true,
+        },
+        where: {
+          customer_id: id,
+        },
+      });
+      delete customer.refresh_token;
+      response.statusCode = 200;
+      response.message = 'Get customer successfully';
+      response.data = customer;
+      return response;
+    } catch (error) {
+      response.statusCode = 500;
+      response.message = error.toString();
+      return response;
     }
   }
 }
