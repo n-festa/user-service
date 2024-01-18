@@ -8,7 +8,7 @@ export class CreateCustomerProfileRequest {
 class requestData {
   name: string;
   email: string;
-  birthday: Date;
+  birthday: string;
   sex: string;
   height_m: number;
   weight_kg: number;
