@@ -31,6 +31,18 @@ export class HealthInfo {
   @Column({ type: 'varchar', length: 255, nullable: true, unique: false })
   public expected_diet: string;
 
+  @Column({
+    type: 'decimal',
+    precision: 3,
+    scale: 1,
+    nullable: true,
+    unique: false,
+  })
+  public bmi: number;
+
+  @Column({ type: 'int', nullable: true, unique: false })
+  public recommended_dietary_allowance_kcal: number;
+
   @CreateDateColumn({
     type: 'datetime',
     nullable: false,

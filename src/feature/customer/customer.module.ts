@@ -5,9 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer } from 'src/entity/customer.entity';
 import { HealthInfo } from 'src/entity/health-info.entity';
 import { Media } from 'src/entity/media.entity';
+import { NutiExpertModule } from 'src/dependency/nuti-expert/nuti-expert.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer, HealthInfo, Media])],
+  imports: [
+    TypeOrmModule.forFeature([Customer, HealthInfo, Media]),
+    NutiExpertModule,
+  ],
   controllers: [CustomerController],
   providers: [CustomerService],
   exports: [CustomerService],
