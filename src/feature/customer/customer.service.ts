@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Media } from 'src/entity/media.entity';
 import { GeneralResponse } from 'src/dto/general-response.dto';
 import { PhysicalActivityLevel } from 'src/enum';
+import { NutiExpertService } from 'src/dependency/nuti-expert/nuti-expert.service';
 
 @Injectable()
 export class CustomerService {
@@ -15,6 +16,7 @@ export class CustomerService {
     @InjectRepository(HealthInfo)
     private healthInfoRepo: Repository<HealthInfo>,
     @InjectRepository(Media) private mediaRepo: Repository<Media>,
+    private readonly nutiExperService: NutiExpertService,
   ) {}
   async createProfile(
     height_m: number,
@@ -96,6 +98,136 @@ export class CustomerService {
       response.statusCode = 500;
       response.message = error.toString();
       return response;
+    }
+  }
+  async updateCustomerProfile(
+    height_m: number,
+    weight_kg: number,
+    physical_activity_level: PhysicalActivityLevel,
+    current_diet: string = '',
+    allergic_food: string = '',
+    chronic_disease: string = '',
+    expected_diet: string = '',
+    name: string,
+    email: string,
+    birthday: string,
+    sex: string,
+    customer_id: number,
+  ): Promise<Customer> {
+    /*
+    //Check whether this profile existed
+    */
+    const customer = await this.customerRepo.findOne({
+      relations: {
+        profile_image: true,
+        health_info: true,
+      },
+      where : {
+        customer_id: customer_id 
+      }
+    });
+    if (!customer) {
+      throw new HttpException(`Profile doesn't exist`, 400);
+    }
+    /*
+    //Convertion due to diff of findNutritionSuggestion func & inputed birthday 
+    */
+    const new_birthday: Date = new Date(birthday); 
+    const old_birthday: Date = new Date(customer.birthday);
+    var isBirthdayChangedFlg: boolean = false;
+    if (new_birthday === old_birthday) {
+      isBirthdayChangedFlg = true;
+    }
+    /*
+    //Update only if there is an change in customer info
+    */
+    if (
+      (name === customer.name) &&
+      (email === customer.email) &&
+      !isBirthdayChangedFlg &&
+      (sex === customer.sex) &&
+      (height_m === customer.health_info.height_m) &&
+      (weight_kg === customer.health_info.weight_kg) &&
+      (physical_activity_level === 
+        customer.health_info.physical_activity_level) &&
+      (current_diet === customer.health_info.current_diet) &&
+      (allergic_food === customer.health_info.allergic_food) &&
+      (chronic_disease === customer.health_info.chronic_disease) &&
+      (expected_diet === customer.health_info.expected_diet) 
+    ) {
+      throw new HttpException(`Need changes!`, 400);
+    }
+    /*
+    //Create new health info if there is a change related to health info
+    */
+    var isHealthInfoChangedFlg: boolean = false;
+    if (
+      isBirthdayChangedFlg ||
+      (sex !== customer.sex) ||
+      (height_m !== customer.health_info.height_m) ||
+      (weight_kg !== customer.health_info.weight_kg) ||
+      (physical_activity_level !== 
+        customer.health_info.physical_activity_level) ||
+      (current_diet !== customer.health_info.current_diet) ||
+      (allergic_food !== customer.health_info.allergic_food) ||
+      (chronic_disease !== customer.health_info.chronic_disease) ||
+      (expected_diet !== customer.health_info.expected_diet) 
+    ) {
+      isHealthInfoChangedFlg = true;
+      const newHealthInfo = new HealthInfo();
+      newHealthInfo.height_m = height_m;
+      newHealthInfo.weight_kg = weight_kg;
+      newHealthInfo.physical_activity_level = physical_activity_level;
+      newHealthInfo.current_diet = current_diet;
+      newHealthInfo.allergic_food = allergic_food;
+      newHealthInfo.chronic_disease = chronic_disease;
+      newHealthInfo.expected_diet = expected_diet;
+      /*
+      //Recalculate BMI & Recommended dietary allowance kcal
+      //Only if there is an update in: 
+      //birthday, height, weight, sex, physical_activity_level   
+      */
+      if (
+        isBirthdayChangedFlg ||
+        (sex !== customer.sex) ||
+        (height_m !== customer.health_info.height_m) ||
+        (weight_kg !== customer.health_info.weight_kg) ||
+        (physical_activity_level !== 
+          customer.health_info.physical_activity_level) 
+      ) {
+        const { bmi, recommended_dietary_allowance_kcal } =
+          await this.nutiExperService.findNutritionSuggestion(
+            birthday,
+            height_m,
+            weight_kg,
+            sex,
+            physical_activity_level,
+          );
+        newHealthInfo.bmi = bmi;
+        newHealthInfo.recommended_dietary_allowance_kcal =
+          recommended_dietary_allowance_kcal; 
+      }
+      const createdHealthInfo = await this.healthInfoRepo.save(newHealthInfo);
+      customer.health_info = createdHealthInfo;
+    }
+    /*
+    //Update Customer
+    */
+    if (
+      (name !== customer.name) ||
+      (email !== customer.email) ||
+      (new_birthday !== customer.birthday) ||
+      (sex !== customer.sex) ||
+      isHealthInfoChangedFlg
+    ) {
+      customer.name = name;
+      customer.email = email;
+      customer.birthday = new_birthday;
+      customer.sex = sex;
+      customer.is_active = 1;
+      const updatedCustomer = await this.customerRepo.save(customer);
+      //delete updatedCustomer.refresh_token;
+      return updatedCustomer;
     }
   }
 }
