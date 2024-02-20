@@ -90,6 +90,7 @@ export class CustomerController {
     const response: UpdateCustomerProfileResponse =
       new CreateCustomerProfileResponse(200, '');
     const {
+      customer_id,
       name,
       email,
       birthday,

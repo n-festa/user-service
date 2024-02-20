@@ -134,7 +134,7 @@ export class CustomerService {
     */
     const new_birthday: Date = new Date(birthday); 
     const old_birthday: Date = new Date(customer.birthday);
-    var isBirthdayChangedFlg: boolean = false;
+    let isBirthdayChangedFlg: boolean = false;
     if (new_birthday === old_birthday) {
       isBirthdayChangedFlg = true;
     }
@@ -160,7 +160,7 @@ export class CustomerService {
     /*
     //Create new health info if there is a change related to health info
     */
-    var isHealthInfoChangedFlg: boolean = false;
+    let isHealthInfoChangedFlg: boolean = false;
     if (
       isBirthdayChangedFlg ||
       (sex !== customer.sex) ||
@@ -216,7 +216,7 @@ export class CustomerService {
     if (
       (name !== customer.name) ||
       (email !== customer.email) ||
-      (new_birthday !== customer.birthday) ||
+      isBirthdayChangedFlg ||
       (sex !== customer.sex) ||
       isHealthInfoChangedFlg
     ) {
@@ -224,7 +224,7 @@ export class CustomerService {
       customer.email = email;
       customer.birthday = new_birthday;
       customer.sex = sex;
-      customer.is_active = 1;
+      // customer.is_active = 1;
       const updatedCustomer = await this.customerRepo.save(customer);
       //delete updatedCustomer.refresh_token;
       return updatedCustomer;
