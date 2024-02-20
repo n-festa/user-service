@@ -88,7 +88,7 @@ export class CustomerController {
     data: UpdateCustomerProfileRequest,
   ): Promise<UpdateCustomerProfileResponse> {
     const response: UpdateCustomerProfileResponse =
-      new CreateCustomerProfileResponse(200, '');
+      new UpdateCustomerProfileResponse(200, '');
     const {
       customer_id,
       name,
