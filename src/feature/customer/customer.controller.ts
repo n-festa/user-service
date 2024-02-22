@@ -90,6 +90,7 @@ export class CustomerController {
     const response: UpdateCustomerProfileResponse =
       new UpdateCustomerProfileResponse(200, '');
     const {
+      customer_id,
       name,
       email,
       birthday,
@@ -102,7 +103,6 @@ export class CustomerController {
       chronic_disease,
       expected_diet,
     } = data.requestData;
-    const { userId } = data.userData;
 
     try {
       const customer: Customer =
@@ -118,7 +118,7 @@ export class CustomerController {
           email,
           birthday,
           sex,
-          userId,
+          customer_id,
         );
       response.statusCode = 200;
       response.message = 'Update customer profile successfully';

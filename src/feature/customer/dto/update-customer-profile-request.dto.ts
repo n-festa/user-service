@@ -1,9 +1,7 @@
 import { PhysicalActivityLevel } from 'src/enum';
-import { GenericUser } from 'src/type';
 
 export class UpdateCustomerProfileRequest {
   requestData: requestData;
-  userData: GenericUser;
 }
 class requestData {
   customer_id: number;

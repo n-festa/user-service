@@ -138,8 +138,11 @@ export class CustomerService {
     /*
     //Convertion due to diff of findNutritionSuggestion func & inputed birthday 
     */
+    const new_birthday: Date = new Date(birthday);
+    const old_birthday: Date = new Date(customer.birthday);
+
     let isBirthdayChangedFlg: boolean = false;
-    if (birthday !== customer.birthday.toString()) {
+    if (new_birthday.getTime() !== old_birthday.getTime()) {
       isBirthdayChangedFlg = true;
     }
     /*
@@ -227,11 +230,11 @@ export class CustomerService {
     ) {
       customer.name = name;
       customer.email = email;
-      customer.birthday = new Date(birthday);
+      customer.birthday = new_birthday;
       customer.sex = sex;
       // customer.is_active = 1;
       const updatedCustomer = await this.customerRepo.save(customer);
-      //delete updatedCustomer.refresh_token;
+      delete updatedCustomer.refresh_token;
       return updatedCustomer;
     }
   }
