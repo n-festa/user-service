@@ -122,66 +122,72 @@ export class CustomerService {
         profile_image: true,
         health_info: true,
       },
-      where : {
-        customer_id: customer_id 
-      }
+      where: {
+        customer_id: customer_id,
+      },
     });
     if (!customer) {
       throw new HttpException(`Profile doesn't exist`, 400);
     }
     /*
+    //Check whether health info existed
+    */
+    if (!customer.health_info) {
+      throw new HttpException(`Health info doesn't exist`, 500);
+    }
+    /*
     //Convertion due to diff of findNutritionSuggestion func & inputed birthday 
     */
-    const new_birthday: Date = new Date(birthday); 
-    const old_birthday: Date = new Date(customer.birthday);
     let isBirthdayChangedFlg: boolean = false;
-    if (new_birthday === old_birthday) {
+    if (birthday !== customer.birthday.toString()) {
       isBirthdayChangedFlg = true;
     }
     /*
     //Update only if there is an change in customer info
     */
     if (
-      (name === customer.name) &&
-      (email === customer.email) &&
+      name === customer.name &&
+      email === customer.email &&
       !isBirthdayChangedFlg &&
-      (sex === customer.sex) &&
-      (height_m === customer.health_info.height_m) &&
-      (weight_kg === customer.health_info.weight_kg) &&
-      (physical_activity_level === 
-        customer.health_info.physical_activity_level) &&
-      (current_diet === customer.health_info.current_diet) &&
-      (allergic_food === customer.health_info.allergic_food) &&
-      (chronic_disease === customer.health_info.chronic_disease) &&
-      (expected_diet === customer.health_info.expected_diet) 
+      sex === customer.sex &&
+      height_m === customer.health_info.height_m &&
+      weight_kg === customer.health_info.weight_kg &&
+      physical_activity_level ===
+        customer.health_info.physical_activity_level &&
+      current_diet === customer.health_info.current_diet &&
+      allergic_food === customer.health_info.allergic_food &&
+      chronic_disease === customer.health_info.chronic_disease &&
+      expected_diet === customer.health_info.expected_diet
     ) {
       throw new HttpException(`Need changes!`, 400);
     }
     /*
-    //Create new health info if there is a change related to health info
+    //Update health info if there is a change related to health info
     */
     let isHealthInfoChangedFlg: boolean = false;
     if (
       isBirthdayChangedFlg ||
-      (sex !== customer.sex) ||
-      (height_m !== customer.health_info.height_m) ||
-      (weight_kg !== customer.health_info.weight_kg) ||
-      (physical_activity_level !== 
-        customer.health_info.physical_activity_level) ||
-      (current_diet !== customer.health_info.current_diet) ||
-      (allergic_food !== customer.health_info.allergic_food) ||
-      (chronic_disease !== customer.health_info.chronic_disease) ||
-      (expected_diet !== customer.health_info.expected_diet) 
+      sex !== customer.sex ||
+      height_m !== customer.health_info.height_m ||
+      weight_kg !== customer.health_info.weight_kg ||
+      physical_activity_level !==
+        customer.health_info.physical_activity_level ||
+      current_diet !== customer.health_info.current_diet ||
+      allergic_food !== customer.health_info.allergic_food ||
+      chronic_disease !== customer.health_info.chronic_disease ||
+      expected_diet !== customer.health_info.expected_diet
     ) {
       isHealthInfoChangedFlg = true;
-      const newHealthInfo = new HealthInfo();
-      newHealthInfo.height_m = height_m;
-      newHealthInfo.weight_kg = weight_kg;
-      newHealthInfo.physical_activity_level = physical_activity_level;
-      newHealthInfo.current_diet = current_diet;
-      newHealthInfo.allergic_food = allergic_food;
-      newHealthInfo.chronic_disease = chronic_disease;
-      newHealthInfo.expected_diet = expected_diet;
+      const healthInfo = await this.healthInfoRepo.findOneBy({
+        health_info_id: customer.health_info.health_info_id,
+      });
+      healthInfo.height_m = height_m;
+      healthInfo.weight_kg = weight_kg;
+      healthInfo.physical_activity_level = physical_activity_level;
+      healthInfo.current_diet = current_diet;
+      healthInfo.allergic_food = allergic_food;
+      healthInfo.chronic_disease = chronic_disease;
+      healthInfo.expected_diet = expected_diet;
       /*
       //Recalculate BMI & Recommended dietary allowance kcal
       //Only if there is an update in: 
@@ -189,11 +195,10 @@ export class CustomerService {
       */
       if (
         isBirthdayChangedFlg ||
-        (sex !== customer.sex) ||
-        (height_m !== customer.health_info.height_m) ||
-        (weight_kg !== customer.health_info.weight_kg) ||
-        (physical_activity_level !== 
-          customer.health_info.physical_activity_level) 
+        sex !== customer.sex ||
+        height_m !== healthInfo.height_m ||
+        weight_kg !== healthInfo.weight_kg ||
+        physical_activity_level !== healthInfo.physical_activity_level
       ) {
         const { bmi, recommended_dietary_allowance_kcal } =
           await this.nutiExperService.findNutritionSuggestion(
@@ -203,26 +208,26 @@ export class CustomerService {
             sex,
             physical_activity_level,
           );
-        newHealthInfo.bmi = bmi;
-        newHealthInfo.recommended_dietary_allowance_kcal =
-          recommended_dietary_allowance_kcal; 
+        healthInfo.bmi = bmi;
+        healthInfo.recommended_dietary_allowance_kcal =
+          recommended_dietary_allowance_kcal;
       }
-      const createdHealthInfo = await this.healthInfoRepo.save(newHealthInfo);
-      customer.health_info = createdHealthInfo;
+      const newHealthInfo = await this.healthInfoRepo.save(healthInfo);
+      customer.health_info = newHealthInfo;
     }
     /*
     //Update Customer
     */
     if (
-      (name !== customer.name) ||
-      (email !== customer.email) ||
+      name !== customer.name ||
+      email !== customer.email ||
       isBirthdayChangedFlg ||
-      (sex !== customer.sex) ||
+      sex !== customer.sex ||
       isHealthInfoChangedFlg
     ) {
       customer.name = name;
       customer.email = email;
-      customer.birthday = new_birthday;
+      customer.birthday = new Date(birthday);
       customer.sex = sex;
       // customer.is_active = 1;
       const updatedCustomer = await this.customerRepo.save(customer);

@@ -1,4 +1,4 @@
-import { PhysicalActivityLevel } from "src/enum";
+import { PhysicalActivityLevel } from 'src/enum';
 import { GenericUser } from 'src/type';
 
 export class UpdateCustomerProfileRequest {
@@ -19,4 +19,3 @@ class requestData {
   chronic_disease: string;
   expected_diet: string;
 }
-  

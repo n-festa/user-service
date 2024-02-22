@@ -90,7 +90,6 @@ export class CustomerController {
     const response: UpdateCustomerProfileResponse =
       new UpdateCustomerProfileResponse(200, '');
     const {
-      customer_id,
       name,
       email,
       birthday,
@@ -106,20 +105,21 @@ export class CustomerController {
     const { userId } = data.userData;
 
     try {
-      const customer: Customer = await this.customerService.updateCustomerProfile(
-        height_m,
-        weight_kg,
-        physical_activity_level,
-        current_diet,
-        allergic_food,
-        chronic_disease,
-        expected_diet,
-        name,
-        email,
-        birthday,
-        sex,
-        userId,
-      );
+      const customer: Customer =
+        await this.customerService.updateCustomerProfile(
+          height_m,
+          weight_kg,
+          physical_activity_level,
+          current_diet,
+          allergic_food,
+          chronic_disease,
+          expected_diet,
+          name,
+          email,
+          birthday,
+          sex,
+          userId,
+        );
       response.statusCode = 200;
       response.message = 'Update customer profile successfully';
       response.data = customer;
