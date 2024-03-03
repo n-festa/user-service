@@ -3,19 +3,27 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CustomerModule } from './feature/customer/customer.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'db-2all-free.c9s4w6ey6i0r.ap-southeast-1.rds.amazonaws.com',
-      port: 3306,
-      username: 'admin',
-      password: 'Goodfood4goodlife',
-      database: 'new-2all-dev',
-      entities: [],
-      synchronize: false,
-      autoLoadEntities: true,
+    ConfigModule.forRoot({
+      envFilePath: ['.env'],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        entities: [__dirname + '/entity/*.entity{.ts,.js}'],
+        synchronize: false,
+        autoLoadEntities: true,
+      }),
+      inject: [ConfigService],
     }),
     CustomerModule,
   ],
