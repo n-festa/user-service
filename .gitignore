@@ -1,6 +1,7 @@
-# compiled output
+# compiled output and dependency
 /dist
 /node_modules
+/.yarn
 
 # Logs
 logs

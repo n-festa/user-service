@@ -4,8 +4,8 @@ export class UpdateProfileImageRequest {
 
 interface RequestData {
   customer_id: number;
-  type: string;
-  name: string;
-  description: string;
+  // type: string;
+  // name: string;
+  // description: string;
   url: string;
 }

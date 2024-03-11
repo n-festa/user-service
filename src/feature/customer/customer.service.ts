@@ -242,7 +242,7 @@ export class CustomerService {
       return updatedCustomer;
     }
   }
-  async uploadImage(fileName: string, file: Buffer) {
+  async uploadImage(fileName: string, file: Buffer, file_type: string) {
     const _file = Buffer.from(file);
 
     const upload = new Upload({
@@ -257,6 +257,8 @@ export class CustomerService {
         Bucket: this.config.get('AWS_S3_BUCKET'),
         Key: 'customer/' + fileName,
         Body: _file,
+        ContentType: file_type,
+        // ACL: 'public-read',
       },
     });
 
@@ -265,6 +267,7 @@ export class CustomerService {
     });
 
     const data = await upload.done();
+    console.log('respose upload data', data);
     if (data) {
       return data;
     } else {
