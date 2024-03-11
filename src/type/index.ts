@@ -4,3 +4,5 @@ export interface GenericUser {
   userName: string;
   permissions: string;
 }
+
+export type FileType = 'image' | 'video';

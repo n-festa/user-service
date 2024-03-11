@@ -8,6 +8,9 @@ import { Media } from 'src/entity/media.entity';
 import { GeneralResponse } from 'src/dto/general-response.dto';
 import { PhysicalActivityLevel } from 'src/enum';
 import { NutiExpertService } from 'src/dependency/nuti-expert/nuti-expert.service';
+import { S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CustomerService {
@@ -17,6 +20,7 @@ export class CustomerService {
     private healthInfoRepo: Repository<HealthInfo>,
     @InjectRepository(Media) private mediaRepo: Repository<Media>,
     private readonly nutiExperService: NutiExpertService,
+    private config: ConfigService,
   ) {}
   async createProfile(
     height_m: number,
@@ -237,5 +241,79 @@ export class CustomerService {
       delete updatedCustomer.refresh_token;
       return updatedCustomer;
     }
+  }
+  async uploadImage(fileName: string, file: Buffer, file_type: string) {
+    const _file = Buffer.from(file);
+
+    const upload = new Upload({
+      client: new S3Client({
+        region: this.config.get('AWS_S3_REGION'),
+        credentials: {
+          accessKeyId: this.config.get('AWS_ACCESS_KEY'),
+          secretAccessKey: this.config.get('AWS_SECRET_ACCESS_KEY'),
+        },
+      }),
+      params: {
+        Bucket: this.config.get('AWS_S3_BUCKET'),
+        Key: 'customer/' + fileName,
+        Body: _file,
+        ContentType: file_type,
+        // ACL: 'public-read',
+      },
+    });
+
+    upload.on('httpUploadProgress', (p) => {
+      console.log(p);
+    });
+
+    const data = await upload.done();
+    console.log('respose upload data', data);
+    if (data) {
+      return data;
+    } else {
+      throw new HttpException(`Can not upload image`, 500);
+    }
+  }
+  async updateProfileImage(
+    customer_id: number,
+    type: string,
+    name: string,
+    description: string,
+    url: string,
+  ): Promise<Customer> {
+    /*
+    Check whether this profile existed
+    */
+    const customer = await this.customerRepo.findOne({
+      relations: {
+        profile_image: true,
+        health_info: true,
+      },
+      where: {
+        customer_id: customer_id,
+      },
+    });
+    if (!customer) {
+      throw new HttpException(`Profile doesn't exist`, 400);
+    }
+    /*
+    //Update or create profile image
+    */
+    customer.profile_image = customer.profile_image
+      ? await this.mediaRepo.save({
+          media_id: customer.profile_image.media_id,
+          type: type,
+          name: name,
+          description: description,
+          url: url,
+        })
+      : await this.mediaRepo.save({
+          type: type,
+          name: name,
+          description: description,
+          url: url,
+        });
+    const updatedCustomer = await this.customerRepo.save(customer);
+    return updatedCustomer;
   }
 }
