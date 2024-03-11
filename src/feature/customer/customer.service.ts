@@ -71,10 +71,10 @@ export class CustomerService {
     customer.email = email;
     customer.birthday = birthday;
     customer.sex = sex;
-    customer.profile_image = await this.mediaRepo.findOneBy({
-      type: 'image',
-      name: 'default_logo_image',
-    });
+    // customer.profile_image = await this.mediaRepo.findOneBy({
+    //   type: 'image',
+    //   name: 'default_logo_image',
+    // });
     customer.is_active = 1;
     customer.health_info = createdHealInfo;
     const upatedCustomer = await this.customerRepo.save(customer);
