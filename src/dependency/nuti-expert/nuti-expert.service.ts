@@ -75,11 +75,11 @@ export class NutiExpertService {
         },
         data: data,
       };
-      console.log(config);
+      // console.log(config);
       const request = this.httpService.request(config);
 
       const result = await lastValueFrom(request);
-      console.log(result.data);
+      // console.log(result.data);
       return {
         bmi: result.data.result.chiSoBMI.result.bmi,
         recommended_dietary_allowance_kcal:
