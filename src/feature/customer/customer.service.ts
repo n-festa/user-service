@@ -188,13 +188,7 @@ export class CustomerService {
       const healthInfo = await this.healthInfoRepo.findOneBy({
         health_info_id: customer.health_info.health_info_id,
       });
-      healthInfo.height_m = height_m;
-      healthInfo.weight_kg = weight_kg;
-      healthInfo.physical_activity_level = physical_activity_level;
-      healthInfo.current_diet = current_diet;
-      healthInfo.allergic_food = allergic_food;
-      healthInfo.chronic_disease = chronic_disease;
-      healthInfo.expected_diet = expected_diet;
+
       /*
       //Recalculate BMI & Recommended dietary allowance kcal
       //Only if there is an update in: 
@@ -219,6 +213,13 @@ export class CustomerService {
         healthInfo.recommended_dietary_allowance_kcal =
           recommended_dietary_allowance_kcal;
       }
+      healthInfo.height_m = height_m;
+      healthInfo.weight_kg = weight_kg;
+      healthInfo.physical_activity_level = physical_activity_level;
+      healthInfo.current_diet = current_diet;
+      healthInfo.allergic_food = allergic_food;
+      healthInfo.chronic_disease = chronic_disease;
+      healthInfo.expected_diet = expected_diet;
       const newHealthInfo = await this.healthInfoRepo.save(healthInfo);
       customer.health_info = newHealthInfo;
     }
@@ -267,7 +268,6 @@ export class CustomerService {
     });
 
     const data = await upload.done();
-    console.log('respose upload data', data);
     if (data) {
       return data;
     } else {
